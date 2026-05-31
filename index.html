@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario Tienda</title>
-    <script defer src="app.js?v=7"></script>
+    <title>Inventario de la Tienda</title>
+    <script defer src="app.js?v=8"></script>
     <style>
         :root {
             --fondo: #eef2f7;
@@ -134,7 +134,7 @@
 
         .acciones {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-bottom: 18px;
         }
@@ -290,8 +290,8 @@
 <body>
     <div class="contenedor">
         <header>
-            <h1>Escáner inventario</h1>
-            <div class="subtitulo">Para mis niños</div>
+            <h1>Escáner para inventario</h1>
+            <div class="subtitulo">para mis niños</div>
         </header>
 
         <main>
@@ -317,6 +317,7 @@
 
             <section class="acciones">
                 <button id="btn-enfocar" class="primario" type="button">Enfocar escaneo</button>
+                <button id="btn-sumar-ultimo" type="button">Sumar ultimo</button>
                 <button id="btn-deshacer" type="button">Deshacer ultimo</button>
                 <button id="btn-exportar" class="verde" type="button">Descargar Excel</button>
                 <button id="btn-limpiar" class="peligro" type="button">Limpiar todo</button>

@@ -3,6 +3,7 @@ const STORAGE_KEY = "inventario_tienda_pistola";
 
 let inventario = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 let historial = [];
+let ultimoValido = null;
 
 const scanInput = document.getElementById("scan-input");
 const estadoApp = document.getElementById("estado-app");
@@ -11,6 +12,7 @@ const contadorTotal = document.getElementById("contador-total");
 const cuerpoTabla = document.getElementById("cuerpo-tabla");
 const listaHistorial = document.getElementById("lista-historial");
 const btnEnfocar = document.getElementById("btn-enfocar");
+const btnSumarUltimo = document.getElementById("btn-sumar-ultimo");
 const btnDeshacer = document.getElementById("btn-deshacer");
 const btnExportar = document.getElementById("btn-exportar");
 const btnLimpiar = document.getElementById("btn-limpiar");
@@ -97,16 +99,7 @@ function emitirBeep() {
     oscillator.stop(audio.currentTime + 0.08);
 }
 
-function procesarLectura(codigoOriginal) {
-    const resultado = interpretarCodigo(codigoOriginal);
-
-    if (resultado.error) {
-        ultimoCodigo.textContent = resultado.codigo || String(codigoOriginal || "vacio");
-        mostrarEstado(resultado.error, "error");
-        enfocarEscaneo();
-        return;
-    }
-
+function sumarResultado(resultado, repetido = false) {
     crearArticulo(resultado.articulo);
     inventario[resultado.articulo][resultado.talla] += 1;
 
@@ -122,12 +115,40 @@ function procesarLectura(codigoOriginal) {
     });
 
     historial = historial.slice(0, 25);
+    ultimoValido = {
+        codigo: resultado.codigo,
+        articulo: resultado.articulo,
+        talla: resultado.talla
+    };
     guardar();
     renderizar();
     ultimoCodigo.textContent = resultado.codigo;
-    mostrarEstado(`Sumado ${resultado.articulo}, talla ${resultado.talla}`, "ok");
+    mostrarEstado(`${repetido ? "Sumado de nuevo" : "Sumado"} ${resultado.articulo}, talla ${resultado.talla}`, "ok");
     emitirBeep();
     enfocarEscaneo();
+}
+
+function procesarLectura(codigoOriginal) {
+    const resultado = interpretarCodigo(codigoOriginal);
+
+    if (resultado.error) {
+        ultimoCodigo.textContent = resultado.codigo || String(codigoOriginal || "vacio");
+        mostrarEstado(resultado.error, "error");
+        enfocarEscaneo();
+        return;
+    }
+
+    sumarResultado(resultado);
+}
+
+function sumarUltimo() {
+    if (!ultimoValido) {
+        mostrarEstado("Primero escanea o escribe un codigo valido.", "error");
+        enfocarEscaneo();
+        return;
+    }
+
+    sumarResultado(ultimoValido, true);
 }
 
 function deshacerUltimo() {
@@ -244,6 +265,7 @@ function limpiarTodo() {
 
     inventario = {};
     historial = [];
+    ultimoValido = null;
     guardar();
     renderizar();
     ultimoCodigo.textContent = "Ninguno";
@@ -280,6 +302,7 @@ document.addEventListener("click", (evento) => {
 });
 
 btnEnfocar.addEventListener("click", enfocarEscaneo);
+btnSumarUltimo.addEventListener("click", sumarUltimo);
 btnDeshacer.addEventListener("click", deshacerUltimo);
 btnExportar.addEventListener("click", descargarExcel);
 btnLimpiar.addEventListener("click", limpiarTodo);
