@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Tienda</title>
+    <script defer src="app.js?v=7"></script>
+    <style>
+        :root {
+            --fondo: #eef2f7;
+            --panel: #ffffff;
+            --texto: #172033;
+            --suave: #667085;
+            --linea: #d9e2ec;
+            --azul: #2563eb;
+            --azul-oscuro: #1d4ed8;
+            --verde: #059669;
+            --verde-fondo: #ecfdf5;
+            --rojo: #dc2626;
+            --gris-boton: #e8eef6;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--fondo);
+            color: var(--texto);
+        }
+
+        .contenedor {
+            width: min(980px, 100%);
+            margin: 0 auto;
+            background: var(--panel);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+            overflow: hidden;
+        }
+
+        header {
+            padding: 18px 18px 12px;
+            border-bottom: 1px solid var(--linea);
+        }
+
+        h1 {
+            margin: 0;
+            text-align: center;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+
+        .subtitulo {
+            margin-top: 6px;
+            text-align: center;
+            color: var(--suave);
+            font-size: 14px;
+        }
+
+        main {
+            padding: 18px;
+        }
+
+        .zona-escaneo {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .scan-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--suave);
+            text-transform: uppercase;
+        }
+
+        #scan-input {
+            width: 100%;
+            padding: 18px 16px;
+            border: 2px solid var(--azul);
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--texto);
+            outline: none;
+            background: #fbfdff;
+        }
+
+        #scan-input:focus {
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+        }
+
+        .estado-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .estado {
+            min-height: 74px;
+            padding: 12px;
+            border: 1px solid var(--linea);
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+
+        .estado .etiqueta {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--suave);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .estado .valor {
+            display: block;
+            font-size: 17px;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .valor.ok {
+            color: var(--verde);
+        }
+
+        .valor.error {
+            color: var(--rojo);
+        }
+
+        .acciones {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        button {
+            min-height: 46px;
+            padding: 12px;
+            border: 0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            color: var(--texto);
+            background: var(--gris-boton);
+        }
+
+        button.primario {
+            color: white;
+            background: var(--azul);
+        }
+
+        button.primario:hover {
+            background: var(--azul-oscuro);
+        }
+
+        button.verde {
+            color: white;
+            background: var(--verde);
+        }
+
+        button.peligro {
+            color: white;
+            background: var(--rojo);
+        }
+
+        .paneles {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+            border: 1px solid var(--linea);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 660px;
+            border-collapse: collapse;
+            text-align: center;
+            background: white;
+        }
+
+        th {
+            padding: 12px 10px;
+            border-bottom: 2px solid var(--linea);
+            background: #f8fafc;
+            color: #475467;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eef2f7;
+            font-size: 15px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .col-articulo {
+            text-align: left;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .col-total {
+            font-weight: 900;
+            background: var(--verde-fondo);
+            color: #047857;
+        }
+
+        .fila-vacia {
+            padding: 24px;
+            color: #98a2b3;
+            text-align: center;
+        }
+
+        .historial {
+            border: 1px solid var(--linea);
+            border-radius: 10px;
+            background: #f8fafc;
+            overflow: hidden;
+        }
+
+        .historial h2 {
+            margin: 0;
+            padding: 12px;
+            border-bottom: 1px solid var(--linea);
+            font-size: 15px;
+        }
+
+        #lista-historial {
+            display: grid;
+            max-height: 360px;
+            overflow: auto;
+        }
+
+        .historial-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e8eef6;
+            font-size: 13px;
+        }
+
+        .historial-item:last-child {
+            border-bottom: none;
+        }
+
+        .historial-item strong {
+            display: block;
+            font-size: 14px;
+        }
+
+        .historial-item span {
+            color: var(--suave);
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 10px;
+            }
+
+            main {
+                padding: 14px;
+            }
+
+            #scan-input {
+                font-size: 20px;
+            }
+
+            .estado-grid,
+            .acciones,
+            .paneles {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <header>
+            <h1>Escáner inventario</h1>
+            <div class="subtitulo">Para mis niños</div>
+        </header>
+
+        <main>
+            <section class="zona-escaneo">
+                <label class="scan-label" for="scan-input">Escanea aqui</label>
+                <input id="scan-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Escanea el codigo de barras">
+            </section>
+
+            <section class="estado-grid">
+                <div class="estado">
+                    <span class="etiqueta">Estado</span>
+                    <span id="estado-app" class="valor ok">Listo para escanear</span>
+                </div>
+                <div class="estado">
+                    <span class="etiqueta">Ultimo codigo</span>
+                    <span id="ultimo-codigo" class="valor">Ninguno</span>
+                </div>
+                <div class="estado">
+                    <span class="etiqueta">Pares contados</span>
+                    <span id="contador-total" class="valor">0</span>
+                </div>
+            </section>
+
+            <section class="acciones">
+                <button id="btn-enfocar" class="primario" type="button">Enfocar escaneo</button>
+                <button id="btn-deshacer" type="button">Deshacer ultimo</button>
+                <button id="btn-exportar" class="verde" type="button">Descargar Excel</button>
+                <button id="btn-limpiar" class="peligro" type="button">Limpiar todo</button>
+            </section>
+
+            <section class="paneles">
+                <div class="tabla-contenedor">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Articulo</th>
+                                <th>35</th>
+                                <th>36</th>
+                                <th>37</th>
+                                <th>38</th>
+                                <th>39</th>
+                                <th>40</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla">
+                            <tr>
+                                <td colspan="8" class="fila-vacia">Ningun articulo escaneado aun</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <aside class="historial">
+                    <h2>Ultimas lecturas</h2>
+                    <div id="lista-historial">
+                        <div class="historial-item">
+                            <span>Sin lecturas todavia</span>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
