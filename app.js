@@ -4,6 +4,7 @@ const HISTORY_KEY = "inventario_tienda_historial";
 
 let inventario = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 let historial = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+let inicioEntradaCodigo = 0;
 
 const scanInput = document.getElementById("scan-input");
 const cantidadInput = document.getElementById("cantidad-input");
@@ -194,6 +195,13 @@ function procesarLectura(codigoOriginal) {
     sumarResultado(resultado, obtenerCantidad());
 }
 
+function procesarCodigoActual() {
+    const codigo = scanInput.value;
+    scanInput.value = "";
+    inicioEntradaCodigo = 0;
+    procesarLectura(codigo);
+}
+
 function ajustarTalla(articulo, talla, cambio) {
     if (!inventario[articulo]) {
         return;
@@ -373,9 +381,27 @@ scanInput.addEventListener("keydown", (evento) => {
     }
 
     evento.preventDefault();
-    const codigo = scanInput.value;
-    scanInput.value = "";
-    procesarLectura(codigo);
+
+    const tiempoEscritura = Date.now() - inicioEntradaCodigo;
+    const parecePistola = tiempoEscritura > 0 && tiempoEscritura < 900;
+
+    if (limpiarCodigo(scanInput.value).length === 13 && cantidadInput.value === "1" && parecePistola) {
+        procesarCodigoActual();
+        return;
+    }
+
+    cantidadInput.focus();
+    cantidadInput.select();
+});
+
+scanInput.addEventListener("input", () => {
+    if (!inicioEntradaCodigo && limpiarCodigo(scanInput.value).length > 0) {
+        inicioEntradaCodigo = Date.now();
+    }
+
+    if (limpiarCodigo(scanInput.value).length === 0) {
+        inicioEntradaCodigo = 0;
+    }
 });
 
 scanInput.addEventListener("paste", () => {
@@ -392,6 +418,12 @@ scanInput.addEventListener("paste", () => {
 cantidadInput.addEventListener("keydown", (evento) => {
     if (evento.key === "Enter") {
         evento.preventDefault();
+
+        if (limpiarCodigo(scanInput.value).length > 0) {
+            procesarCodigoActual();
+            return;
+        }
+
         enfocarEscaneo();
     }
 });

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario de la Tienda</title>
-    <script defer src="app.js?v=18"></script>
+    <script defer src="app.js?v=19"></script>
     <style>
         :root {
             --fondo: #eef2f7;
@@ -410,11 +410,11 @@
             <section class="zona-escaneo">
                 <div class="campo-escaneo">
                     <label class="scan-label" for="scan-input">Escanea aqui</label>
-                    <input id="scan-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Escanea el codigo de barras">
+                    <input id="scan-input" type="text" inputmode="numeric" enterkeyhint="next" autocomplete="off" placeholder="Escanea el codigo de barras">
                 </div>
                 <div class="campo-escaneo">
                     <label class="scan-label" for="cantidad-input">Cantidad</label>
-                    <input id="cantidad-input" type="number" inputmode="numeric" min="1" max="999" value="1">
+                    <input id="cantidad-input" type="number" inputmode="numeric" enterkeyhint="done" min="1" max="999" value="1">
                 </div>
             </section>
 
