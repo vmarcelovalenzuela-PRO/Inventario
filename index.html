@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario de la Tienda</title>
-    <script defer src="app.js?v=8"></script>
+    <script defer src="app.js?v=18"></script>
     <style>
         :root {
             --fondo: #eef2f7;
@@ -14,9 +14,12 @@
             --linea: #d9e2ec;
             --azul: #2563eb;
             --azul-oscuro: #1d4ed8;
+            --azul-suave: #eff6ff;
             --verde: #059669;
             --verde-fondo: #ecfdf5;
+            --ambar: #f59e0b;
             --rojo: #dc2626;
+            --rojo-fondo: #fef2f2;
             --gris-boton: #e8eef6;
         }
 
@@ -26,48 +29,50 @@
 
         body {
             margin: 0;
-            padding: 16px;
+            padding: 8px;
             font-family: "Segoe UI", Arial, sans-serif;
             background: var(--fondo);
             color: var(--texto);
         }
 
         .contenedor {
-            width: min(980px, 100%);
+            width: min(1100px, 100%);
             margin: 0 auto;
             background: var(--panel);
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
             overflow: hidden;
+            border: 1px solid rgba(15, 23, 42, 0.06);
         }
 
         header {
-            padding: 18px 18px 12px;
+            padding: 16px 16px 12px;
             border-bottom: 1px solid var(--linea);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
         }
 
         h1 {
             margin: 0;
             text-align: center;
-            font-size: 24px;
+            font-size: 26px;
             line-height: 1.2;
-        }
-
-        .subtitulo {
-            margin-top: 6px;
-            text-align: center;
-            color: var(--suave);
-            font-size: 14px;
+            letter-spacing: 0;
         }
 
         main {
-            padding: 18px;
+            padding: 12px;
         }
 
         .zona-escaneo {
             display: grid;
+            grid-template-columns: 1fr 140px;
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+        }
+
+        .campo-escaneo {
+            display: grid;
+            gap: 8px;
         }
 
         .scan-label {
@@ -77,20 +82,29 @@
             text-transform: uppercase;
         }
 
-        #scan-input {
+        #scan-input,
+        #cantidad-input {
             width: 100%;
-            padding: 18px 16px;
+            padding: 14px 12px;
             border: 2px solid var(--azul);
             border-radius: 10px;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             letter-spacing: 1px;
             color: var(--texto);
             outline: none;
-            background: #fbfdff;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        }
+
+        #cantidad-input {
+            text-align: center;
         }
 
         #scan-input:focus {
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+        }
+
+        #cantidad-input:focus {
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
         }
 
@@ -98,15 +112,16 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .estado {
-            min-height: 74px;
-            padding: 12px;
+            min-height: 64px;
+            padding: 10px;
             border: 1px solid var(--linea);
             border-radius: 10px;
-            background: #f8fafc;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
         .estado .etiqueta {
@@ -134,14 +149,17 @@
 
         .acciones {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
-            margin-bottom: 18px;
+        }
+
+        .acciones-principales {
+            grid-template-columns: repeat(3, 1fr);
+            margin-bottom: 12px;
         }
 
         button {
-            min-height: 46px;
-            padding: 12px;
+            min-height: 38px;
+            padding: 9px 10px;
             border: 0;
             border-radius: 8px;
             font-size: 15px;
@@ -149,6 +167,7 @@
             cursor: pointer;
             color: var(--texto);
             background: var(--gris-boton);
+            box-shadow: inset 0 -1px 0 rgba(15, 23, 42, 0.08);
         }
 
         button.primario {
@@ -170,37 +189,88 @@
             background: var(--rojo);
         }
 
-        .paneles {
-            display: grid;
-            grid-template-columns: 1fr 280px;
-            gap: 14px;
-            align-items: start;
+        button.secundario {
+            color: #1d4ed8;
+            background: var(--azul-suave);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .btn-borrar-fila {
+            min-height: 34px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            color: white;
+            background: var(--rojo);
+            font-size: 13px;
+        }
+
+        .celda-talla {
+            min-width: 74px;
+        }
+
+        .control-talla {
+            display: inline-grid;
+            grid-template-columns: 26px minmax(24px, auto) 26px;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-restar,
+        .btn-sumar {
+            min-height: 26px;
+            width: 26px;
+            padding: 0;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .btn-restar {
+            background: #64748b;
+        }
+
+        .btn-sumar {
+            background: var(--verde);
+        }
+
+        .cantidad-talla {
+            font-weight: 800;
         }
 
         .tabla-contenedor {
             overflow-x: auto;
             border: 1px solid var(--linea);
             border-radius: 10px;
+            background: white;
         }
 
         table {
             width: 100%;
-            min-width: 660px;
+            min-width: 760px;
             border-collapse: collapse;
             text-align: center;
             background: white;
         }
 
         th {
-            padding: 12px 10px;
+            padding: 9px 8px;
             border-bottom: 2px solid var(--linea);
             background: #f8fafc;
             color: #475467;
             font-size: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
 
         td {
-            padding: 12px 10px;
+            padding: 9px 8px;
             border-bottom: 1px solid #eef2f7;
             font-size: 15px;
         }
@@ -228,6 +298,7 @@
         }
 
         .historial {
+            margin-top: 12px;
             border: 1px solid var(--linea);
             border-radius: 10px;
             background: #f8fafc;
@@ -243,7 +314,7 @@
 
         #lista-historial {
             display: grid;
-            max-height: 360px;
+            max-height: 220px;
             overflow: auto;
         }
 
@@ -266,6 +337,45 @@
             color: var(--suave);
         }
 
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: grid;
+            place-items: center;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.46);
+        }
+
+        .modal.modal-oculto {
+            display: none;
+        }
+
+        .modal-caja {
+            width: min(420px, 100%);
+            padding: 18px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.25);
+        }
+
+        .modal-caja h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .modal-caja p {
+            margin: 0 0 16px;
+            color: var(--suave);
+            line-height: 1.45;
+        }
+
+        .modal-acciones {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
         @media (max-width: 760px) {
             body {
                 padding: 10px;
@@ -279,9 +389,12 @@
                 font-size: 20px;
             }
 
+            .zona-escaneo {
+                grid-template-columns: 1fr;
+            }
+
             .estado-grid,
-            .acciones,
-            .paneles {
+            .acciones-principales {
                 grid-template-columns: 1fr;
             }
         }
@@ -290,14 +403,19 @@
 <body>
     <div class="contenedor">
         <header>
-            <h1>Escáner para inventario</h1>
-            <div class="subtitulo">para mis niños</div>
+            <h1>Control de Bodega</h1>
         </header>
 
         <main>
             <section class="zona-escaneo">
-                <label class="scan-label" for="scan-input">Escanea aqui</label>
-                <input id="scan-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Escanea el codigo de barras">
+                <div class="campo-escaneo">
+                    <label class="scan-label" for="scan-input">Escanea aqui</label>
+                    <input id="scan-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Escanea el codigo de barras">
+                </div>
+                <div class="campo-escaneo">
+                    <label class="scan-label" for="cantidad-input">Cantidad</label>
+                    <input id="cantidad-input" type="number" inputmode="numeric" min="1" max="999" value="1">
+                </div>
             </section>
 
             <section class="estado-grid">
@@ -315,47 +433,55 @@
                 </div>
             </section>
 
-            <section class="acciones">
-                <button id="btn-enfocar" class="primario" type="button">Enfocar escaneo</button>
-                <button id="btn-sumar-ultimo" type="button">Sumar ultimo</button>
-                <button id="btn-deshacer" type="button">Deshacer ultimo</button>
+            <section class="acciones acciones-principales">
+                <button id="btn-enfocar" class="secundario" type="button">Enfocar escaneo</button>
                 <button id="btn-exportar" class="verde" type="button">Descargar Excel</button>
                 <button id="btn-limpiar" class="peligro" type="button">Limpiar todo</button>
             </section>
 
-            <section class="paneles">
-                <div class="tabla-contenedor">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Articulo</th>
-                                <th>35</th>
-                                <th>36</th>
-                                <th>37</th>
-                                <th>38</th>
-                                <th>39</th>
-                                <th>40</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cuerpo-tabla">
-                            <tr>
-                                <td colspan="8" class="fila-vacia">Ningun articulo escaneado aun</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Articulo</th>
+                            <th>35</th>
+                            <th>36</th>
+                            <th>37</th>
+                            <th>38</th>
+                            <th>39</th>
+                            <th>40</th>
+                            <th>Total</th>
+                            <th>Borrar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla">
+                        <tr>
+                            <td colspan="9" class="fila-vacia">Ningun articulo escaneado aun</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                <aside class="historial">
-                    <h2>Ultimas lecturas</h2>
-                    <div id="lista-historial">
-                        <div class="historial-item">
-                            <span>Sin lecturas todavia</span>
-                        </div>
+            <aside class="historial">
+                <h2>Ultimas lecturas</h2>
+                <div id="lista-historial">
+                    <div class="historial-item">
+                        <span>Sin lecturas todavia</span>
                     </div>
-                </aside>
-            </section>
+                </div>
+            </aside>
         </main>
+    </div>
+
+    <div id="modal-confirmacion" class="modal modal-oculto" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+        <div class="modal-caja">
+            <h2 id="modal-titulo">Confirmar accion</h2>
+            <p id="modal-mensaje"></p>
+            <div class="modal-acciones">
+                <button id="btn-cancelar-modal" class="secundario" type="button">Cancelar</button>
+                <button id="btn-confirmar-modal" class="peligro" type="button">Borrar</button>
+            </div>
+        </div>
     </div>
 </body>
 </html>
