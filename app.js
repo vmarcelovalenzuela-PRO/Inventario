@@ -15,6 +15,7 @@ const cuerpoTabla = document.getElementById("cuerpo-tabla");
 const listaHistorial = document.getElementById("lista-historial");
 const btnEnfocar = document.getElementById("btn-enfocar");
 const btnExportar = document.getElementById("btn-exportar");
+const btnCompartir = document.getElementById("btn-compartir");
 const btnLimpiar = document.getElementById("btn-limpiar");
 const modalConfirmacion = document.getElementById("modal-confirmacion");
 const modalTitulo = document.getElementById("modal-titulo");
@@ -137,6 +138,30 @@ function nombreFechaHora() {
     const min = String(ahora.getMinutes()).padStart(2, "0");
 
     return `${yyyy}-${mm}-${dd}_${hh}${min}`;
+}
+
+function crearArchivoInventario() {
+    const articulos = Object.keys(inventario).sort();
+
+    if (articulos.length === 0) {
+        return null;
+    }
+
+    let csv = "sep=;\r\n";
+    csv += "Articulo;35;36;37;38;39;40;Total\r\n";
+
+    for (const articulo of articulos) {
+        const fila = inventario[articulo];
+        csv += `${articulo};${fila["35"]};${fila["36"]};${fila["37"]};${fila["38"]};${fila["39"]};${fila["40"]};${totalArticulo(articulo)}\r\n`;
+    }
+
+    const nombre = `inventario_${nombreFechaHora()}.csv`;
+    const blob = new Blob(
+        [new Uint8Array([0xEF, 0xBB, 0xBF]), csv],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    return { nombre, blob };
 }
 
 function emitirBeep() {
@@ -326,37 +351,57 @@ function renderizar() {
 }
 
 function descargarExcel() {
-    const articulos = Object.keys(inventario).sort();
+    const archivo = crearArchivoInventario();
 
-    if (articulos.length === 0) {
+    if (!archivo) {
         mostrarEstado("No hay datos para exportar.", "error");
         enfocarEscaneo();
         return;
     }
 
-    let csv = "sep=;\r\n";
-    csv += "Articulo;35;36;37;38;39;40;Total\r\n";
-
-    for (const articulo of articulos) {
-        const fila = inventario[articulo];
-        csv += `${articulo};${fila["35"]};${fila["36"]};${fila["37"]};${fila["38"]};${fila["39"]};${fila["40"]};${totalArticulo(articulo)}\r\n`;
-    }
-
-    const blob = new Blob(
-        [new Uint8Array([0xEF, 0xBB, 0xBF]), csv],
-        { type: "text/csv;charset=utf-8;" }
-    );
     const enlace = document.createElement("a");
-    const fecha = nombreFechaHora();
 
-    enlace.href = URL.createObjectURL(blob);
-    enlace.download = `inventario_${fecha}.csv`;
+    enlace.href = URL.createObjectURL(archivo.blob);
+    enlace.download = archivo.nombre;
     document.body.appendChild(enlace);
     enlace.click();
     document.body.removeChild(enlace);
 
     mostrarEstado("Archivo descargado.", "ok");
     enfocarEscaneo();
+}
+
+async function compartirExcel() {
+    const archivo = crearArchivoInventario();
+
+    if (!archivo) {
+        mostrarEstado("No hay datos para compartir.", "error");
+        enfocarEscaneo();
+        return;
+    }
+
+    const file = new File([archivo.blob], archivo.nombre, {
+        type: "text/csv"
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        try {
+            await navigator.share({
+                title: "Inventario",
+                text: "Inventario de bodega",
+                files: [file]
+            });
+            mostrarEstado("Archivo compartido.", "ok");
+        } catch (error) {
+            mostrarEstado("Compartir cancelado.", "error");
+        }
+
+        enfocarEscaneo();
+        return;
+    }
+
+    mostrarEstado("Este navegador no permite compartir archivos. Se descargó una copia.", "error");
+    descargarExcel();
 }
 
 function limpiarTodo() {
@@ -444,6 +489,7 @@ document.addEventListener("click", (evento) => {
 
 btnEnfocar.addEventListener("click", enfocarEscaneo);
 btnExportar.addEventListener("click", descargarExcel);
+btnCompartir.addEventListener("click", compartirExcel);
 btnLimpiar.addEventListener("click", limpiarTodo);
 btnCancelarModal.addEventListener("click", cerrarConfirmacion);
 btnConfirmarModal.addEventListener("click", () => {

@@ -4,23 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario de la Tienda</title>
-    <script defer src="app.js?v=19"></script>
+    <script defer src="app.js?v=25"></script>
     <style>
         :root {
-            --fondo: #eef2f7;
+            --fondo: #fde7fb;
             --panel: #ffffff;
-            --texto: #172033;
-            --suave: #667085;
-            --linea: #d9e2ec;
-            --azul: #2563eb;
-            --azul-oscuro: #1d4ed8;
-            --azul-suave: #eff6ff;
+            --texto: #111111;
+            --suave: #665466;
+            --linea: #efc7ec;
+            --azul: #d86bd0;
+            --azul-oscuro: #111111;
+            --azul-suave: #fff0fd;
             --verde: #059669;
             --verde-fondo: #ecfdf5;
             --ambar: #f59e0b;
             --rojo: #dc2626;
             --rojo-fondo: #fef2f2;
-            --gris-boton: #e8eef6;
+            --gris-boton: #f7d8f4;
+            --rosa: #f5b7ef;
+            --rosa-fuerte: #e879d8;
         }
 
         * {
@@ -40,20 +42,31 @@
             margin: 0 auto;
             background: var(--panel);
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+            box-shadow: 0 8px 24px rgba(17, 17, 17, 0.10);
             overflow: hidden;
-            border: 1px solid rgba(15, 23, 42, 0.06);
+            border: 1px solid rgba(17, 17, 17, 0.08);
         }
 
         header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
             padding: 16px 16px 12px;
             border-bottom: 1px solid var(--linea);
-            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            background: #f5b7ef;
+        }
+
+        .logo-marca {
+            width: 76px;
+            height: 76px;
+            object-fit: contain;
+            border-radius: 12px;
         }
 
         h1 {
             margin: 0;
-            text-align: center;
+            text-align: left;
             font-size: 26px;
             line-height: 1.2;
             letter-spacing: 0;
@@ -93,7 +106,7 @@
             letter-spacing: 1px;
             color: var(--texto);
             outline: none;
-            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            background: linear-gradient(180deg, #ffffff 0%, #fff7fe 100%);
         }
 
         #cantidad-input {
@@ -101,11 +114,13 @@
         }
 
         #scan-input:focus {
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+            border-color: var(--rosa-fuerte);
+            box-shadow: 0 0 0 4px rgba(245, 183, 239, 0.42);
         }
 
         #cantidad-input:focus {
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+            border-color: var(--rosa-fuerte);
+            box-shadow: 0 0 0 4px rgba(245, 183, 239, 0.42);
         }
 
         .estado-grid {
@@ -120,7 +135,7 @@
             padding: 10px;
             border: 1px solid var(--linea);
             border-radius: 10px;
-            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            background: linear-gradient(180deg, #ffffff 0%, #fff6fe 100%);
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
@@ -153,7 +168,7 @@
         }
 
         .acciones-principales {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             margin-bottom: 12px;
         }
 
@@ -190,8 +205,9 @@
         }
 
         button.secundario {
-            color: #1d4ed8;
+            color: #111111;
             background: var(--azul-suave);
+            border: 1px solid #e9a8e4;
         }
 
         button:disabled {
@@ -385,6 +401,19 @@
                 padding: 14px;
             }
 
+            header {
+                justify-content: flex-start;
+            }
+
+            .logo-marca {
+                width: 60px;
+                height: 60px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+
             #scan-input {
                 font-size: 20px;
             }
@@ -403,6 +432,7 @@
 <body>
     <div class="contenedor">
         <header>
+            <img class="logo-marca" src="cmoran.png" alt="C/MORAN">
             <h1>Control de Bodega</h1>
         </header>
 
@@ -436,6 +466,7 @@
             <section class="acciones acciones-principales">
                 <button id="btn-enfocar" class="secundario" type="button">Enfocar escaneo</button>
                 <button id="btn-exportar" class="verde" type="button">Descargar Excel</button>
+                <button id="btn-compartir" class="secundario" type="button">Compartir Excel</button>
                 <button id="btn-limpiar" class="peligro" type="button">Limpiar todo</button>
             </section>
 
