@@ -1,0 +1,9 @@
+Control de Bodega C/MORAN
+
+Copyright (c) Marcelo Valenzuela.
+
+Uso interno y privado.
+
+Queda prohibida la copia, venta, publicacion, modificacion, sublicencia o distribucion de este software sin autorizacion expresa del autor.
+
+Este software se entrega para uso especifico de inventario de tienda. Cualquier otro uso requiere permiso previo.

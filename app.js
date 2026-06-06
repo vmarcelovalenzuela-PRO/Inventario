@@ -1,3 +1,10 @@
+/*
+ * Control de Bodega C/MORAN
+ * Desarrollado por Marcelo Valenzuela.
+ * Uso interno para inventario de tienda.
+ * Prohibida su copia, venta o distribucion sin autorizacion.
+ */
+
 const tallas = ["35", "36", "37", "38", "39", "40", "41"];
 const HISTORIAL_MAXIMO = 15;
 const HISTORIAL_VISIBLE = 3;
