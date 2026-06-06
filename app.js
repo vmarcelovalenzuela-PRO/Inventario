@@ -1,4 +1,33 @@
-const tallas = ["35", "36", "37", "38", "39", "40"];
+const tallas = ["35", "36", "37", "38", "39", "40", "41"];
+const curvas = {
+    G04: {
+        "35": 1,
+        "36": 2,
+        "37": 3,
+        "38": 3,
+        "39": 2,
+        "40": 1,
+        "41": 0
+    },
+    G08: {
+        "35": 0,
+        "36": 1,
+        "37": 2,
+        "38": 1,
+        "39": 1,
+        "40": 0,
+        "41": 1
+    },
+    G02: {
+        "35": 1,
+        "36": 3,
+        "37": 4,
+        "38": 3,
+        "39": 1,
+        "40": 0,
+        "41": 0
+    }
+};
 const STORAGE_KEY = "inventario_tienda_pistola";
 const HISTORY_KEY = "inventario_tienda_historial";
 
@@ -7,6 +36,7 @@ let historial = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
 let inicioEntradaCodigo = 0;
 
 const scanInput = document.getElementById("scan-input");
+const scanForm = document.getElementById("scan-form");
 const cantidadInput = document.getElementById("cantidad-input");
 const estadoApp = document.getElementById("estado-app");
 const ultimoCodigo = document.getElementById("ultimo-codigo");
@@ -77,22 +107,50 @@ function limpiarCodigo(codigo) {
     return String(codigo || "").replace(/\D/g, "");
 }
 
-function interpretarCodigo(codigoOriginal) {
-    const codigo = limpiarCodigo(codigoOriginal);
+function limpiarEntrada(codigo) {
+    return String(codigo || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
 
-    if (codigo.length !== 13) {
+function interpretarCodigo(codigoOriginal) {
+    const entrada = limpiarEntrada(codigoOriginal);
+
+    if (entrada.length !== 13) {
         return {
-            error: `Codigo invalido: debe tener 13 numeros y tiene ${codigo.length}.`,
-            codigo
+            error: `Codigo invalido: debe tener 13 caracteres y tiene ${entrada.length}.`,
+            codigo: entrada
         };
     }
 
-    const articulo = codigo.slice(0, -2);
-    const talla = codigo.slice(-2);
+    const codigoCurva = Object.keys(curvas).find((curva) => entrada.endsWith(curva));
+
+    if (codigoCurva) {
+        const articulo = entrada.slice(0, -codigoCurva.length);
+
+        if (articulo.length === 0) {
+            return {
+                error: `Codigo ${codigoCurva} invalido: falta articulo.`,
+                codigo: entrada
+            };
+        }
+
+        return {
+            codigo: entrada,
+            articulo,
+            talla: codigoCurva,
+            curva: curvas[codigoCurva]
+        };
+    }
+
+    const codigo = limpiarCodigo(entrada);
+
+    const finalTres = codigo.slice(-3);
+    const esTallaEspecial35 = finalTres === "099" || finalTres === "009";
+    const talla = esTallaEspecial35 ? "35" : codigo.slice(-2);
+    const articulo = esTallaEspecial35 ? codigo.slice(0, -3) : codigo.slice(0, -2);
 
     if (!tallas.includes(talla)) {
         return {
-            error: `Talla invalida: ${talla}. Solo se acepta 35 a 40.`,
+            error: `Talla invalida: ${talla}. Solo se acepta 35 a 41.`,
             codigo
         };
     }
@@ -108,8 +166,15 @@ function crearArticulo(articulo) {
             "37": 0,
             "38": 0,
             "39": 0,
-            "40": 0
+            "40": 0,
+            "41": 0
         };
+    }
+
+    for (const talla of tallas) {
+        if (typeof inventario[articulo][talla] !== "number") {
+            inventario[articulo][talla] = 0;
+        }
     }
 }
 
@@ -119,6 +184,10 @@ function totalArticulo(articulo) {
 
 function totalGeneral() {
     return Object.keys(inventario).reduce((total, articulo) => total + totalArticulo(articulo), 0);
+}
+
+function totalCurva(curva) {
+    return tallas.reduce((total, talla) => total + (curva[talla] || 0), 0);
 }
 
 function crearHora() {
@@ -148,11 +217,12 @@ function crearArchivoInventario() {
     }
 
     let csv = "sep=;\r\n";
-    csv += "Articulo;35;36;37;38;39;40;Total\r\n";
+    csv += "Articulo;35;36;37;38;39;40;41;Total\r\n";
 
     for (const articulo of articulos) {
+        crearArticulo(articulo);
         const fila = inventario[articulo];
-        csv += `${articulo};${fila["35"]};${fila["36"]};${fila["37"]};${fila["38"]};${fila["39"]};${fila["40"]};${totalArticulo(articulo)}\r\n`;
+        csv += `${articulo};${fila["35"]};${fila["36"]};${fila["37"]};${fila["38"]};${fila["39"]};${fila["40"]};${fila["41"]};${totalArticulo(articulo)}\r\n`;
     }
 
     const nombre = `inventario_${nombreFechaHora()}.csv`;
@@ -186,14 +256,22 @@ function emitirBeep() {
 
 function sumarResultado(resultado, cantidad = 1) {
     crearArticulo(resultado.articulo);
-    inventario[resultado.articulo][resultado.talla] += cantidad;
+
+    if (resultado.curva) {
+        for (const talla of tallas) {
+            inventario[resultado.articulo][talla] += (resultado.curva[talla] || 0) * cantidad;
+        }
+    } else {
+        inventario[resultado.articulo][resultado.talla] += cantidad;
+    }
 
     historial.unshift({
         tipo: "suma",
         codigo: resultado.codigo,
         articulo: resultado.articulo,
         talla: resultado.talla,
-        cantidad,
+        cantidad: resultado.curva ? totalCurva(resultado.curva) * cantidad : cantidad,
+        detalle: resultado.curva ? `${resultado.talla} x${cantidad}` : "",
         hora: crearHora()
     });
 
@@ -201,7 +279,11 @@ function sumarResultado(resultado, cantidad = 1) {
     guardar();
     renderizar();
     ultimoCodigo.textContent = resultado.codigo;
-    mostrarEstado(`Sumado ${cantidad} de ${resultado.articulo}, talla ${resultado.talla}`, "ok");
+    if (resultado.curva) {
+        mostrarEstado(`Sumada caja ${resultado.talla}: ${totalCurva(resultado.curva) * cantidad} pares en ${resultado.articulo}`, "ok");
+    } else {
+        mostrarEstado(`Sumado ${cantidad} de ${resultado.articulo}, talla ${resultado.talla}`, "ok");
+    }
     emitirBeep();
     cantidadInput.value = "1";
     enfocarEscaneo();
@@ -225,6 +307,17 @@ function procesarCodigoActual() {
     scanInput.value = "";
     inicioEntradaCodigo = 0;
     procesarLectura(codigo);
+}
+
+function hayCodigoPendiente() {
+    const entrada = limpiarEntrada(scanInput.value);
+
+    if (Object.keys(curvas).some((curva) => entrada.endsWith(curva))) {
+        return entrada.length === 13;
+    }
+
+    const largo = limpiarCodigo(entrada).length;
+    return largo === 13;
 }
 
 function ajustarTalla(articulo, talla, cambio) {
@@ -290,13 +383,14 @@ function renderizarTabla() {
     if (articulos.length === 0) {
         cuerpoTabla.innerHTML = `
             <tr>
-                <td colspan="9" class="fila-vacia">Ningun articulo escaneado aun</td>
+                <td colspan="10" class="fila-vacia">Ningun articulo escaneado aun</td>
             </tr>
         `;
         return;
     }
 
     cuerpoTabla.innerHTML = articulos.map((articulo) => {
+        crearArticulo(articulo);
         const columnas = tallas.map((talla) => {
             const valor = inventario[articulo][talla];
 
@@ -335,9 +429,13 @@ function renderizarHistorial() {
     listaHistorial.innerHTML = historial.slice(0, 10).map((item) => {
         const signo = item.tipo === "resta" ? "-" : "+";
 
+        const titulo = item.talla && item.talla.startsWith("G")
+            ? `${item.articulo} - caja ${item.talla}`
+            : `${item.articulo} - talla ${item.talla}`;
+
         return `
         <div class="historial-item">
-            <strong>${item.articulo} - talla ${item.talla}</strong>
+            <strong>${titulo}</strong>
             <span>${item.codigo} · ${signo}${item.cantidad || 1} · ${item.hora}</span>
         </div>
     `;
@@ -464,7 +562,7 @@ cantidadInput.addEventListener("keydown", (evento) => {
     if (evento.key === "Enter") {
         evento.preventDefault();
 
-        if (limpiarCodigo(scanInput.value).length > 0) {
+        if (hayCodigoPendiente()) {
             procesarCodigoActual();
             return;
         }
@@ -479,6 +577,28 @@ cantidadInput.addEventListener("focus", () => {
 
 cantidadInput.addEventListener("change", () => {
     cantidadInput.value = String(obtenerCantidad());
+});
+
+cantidadInput.addEventListener("blur", () => {
+    if (hayCodigoPendiente()) {
+        setTimeout(() => {
+            if (hayCodigoPendiente()) {
+                procesarCodigoActual();
+            }
+        }, 80);
+    }
+});
+
+scanForm.addEventListener("submit", (evento) => {
+    evento.preventDefault();
+
+    if (hayCodigoPendiente()) {
+        procesarCodigoActual();
+        return;
+    }
+
+    mostrarEstado("Falta ingresar un codigo valido.", "error");
+    enfocarEscaneo();
 });
 
 document.addEventListener("click", (evento) => {

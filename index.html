@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario de la Tienda</title>
-    <script defer src="app.js?v=25"></script>
+    <script defer src="app.js?v=32"></script>
     <style>
         :root {
             --fondo: #fde7fb;
@@ -78,7 +78,7 @@
 
         .zona-escaneo {
             display: grid;
-            grid-template-columns: 1fr 140px;
+            grid-template-columns: 1fr 140px 120px;
             gap: 12px;
             margin-bottom: 12px;
         }
@@ -268,7 +268,7 @@
 
         table {
             width: 100%;
-            min-width: 760px;
+            min-width: 820px;
             border-collapse: collapse;
             text-align: center;
             background: white;
@@ -437,16 +437,20 @@
         </header>
 
         <main>
-            <section class="zona-escaneo">
+            <form id="scan-form" class="zona-escaneo">
                 <div class="campo-escaneo">
                     <label class="scan-label" for="scan-input">Escanea aqui</label>
-                    <input id="scan-input" type="text" inputmode="numeric" enterkeyhint="next" autocomplete="off" placeholder="Escanea el codigo de barras">
+                    <input id="scan-input" type="text" inputmode="text" enterkeyhint="next" autocomplete="off" autocapitalize="characters" placeholder="Escanea el codigo de barras">
                 </div>
                 <div class="campo-escaneo">
                     <label class="scan-label" for="cantidad-input">Cantidad</label>
                     <input id="cantidad-input" type="number" inputmode="numeric" enterkeyhint="done" min="1" max="999" value="1">
                 </div>
-            </section>
+                <div class="campo-escaneo">
+                    <span class="scan-label">&nbsp;</span>
+                    <button id="btn-agregar" class="primario" type="submit">Agregar</button>
+                </div>
+            </form>
 
             <section class="estado-grid">
                 <div class="estado">
@@ -481,13 +485,14 @@
                             <th>38</th>
                             <th>39</th>
                             <th>40</th>
+                            <th>41</th>
                             <th>Total</th>
                             <th>Borrar</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla">
                         <tr>
-                            <td colspan="9" class="fila-vacia">Ningun articulo escaneado aun</td>
+                            <td colspan="10" class="fila-vacia">Ningun articulo escaneado aun</td>
                         </tr>
                     </tbody>
                 </table>
