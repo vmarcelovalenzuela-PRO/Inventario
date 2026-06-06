@@ -1,4 +1,6 @@
 const tallas = ["35", "36", "37", "38", "39", "40", "41"];
+const HISTORIAL_MAXIMO = 15;
+const HISTORIAL_VISIBLE = 3;
 const curvas = {
     G04: {
         "35": 1,
@@ -57,7 +59,7 @@ let accionConfirmada = null;
 
 function guardar() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(inventario));
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(historial.slice(0, 25)));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(historial.slice(0, HISTORIAL_MAXIMO)));
 }
 
 function enfocarEscaneo() {
@@ -275,7 +277,7 @@ function sumarResultado(resultado, cantidad = 1) {
         hora: crearHora()
     });
 
-    historial = historial.slice(0, 25);
+    historial = historial.slice(0, HISTORIAL_MAXIMO);
     guardar();
     renderizar();
     ultimoCodigo.textContent = resultado.codigo;
@@ -344,7 +346,7 @@ function ajustarTalla(articulo, talla, cambio) {
         hora: crearHora()
     });
 
-    historial = historial.slice(0, 25);
+    historial = historial.slice(0, HISTORIAL_MAXIMO);
 
     if (totalArticulo(articulo) === 0) {
         delete inventario[articulo];
@@ -426,7 +428,7 @@ function renderizarHistorial() {
         return;
     }
 
-    listaHistorial.innerHTML = historial.slice(0, 10).map((item) => {
+    listaHistorial.innerHTML = historial.slice(0, HISTORIAL_VISIBLE).map((item) => {
         const signo = item.tipo === "resta" ? "-" : "+";
 
         const titulo = item.talla && item.talla.startsWith("G")
